@@ -17,13 +17,19 @@ It is wikisource dedicated API library.
 from pywikisource import WikiSourceApi
 
 # Create the Wikisource object
+WS_pt = WikiSourceApi('pt')
+
+# Get number and labeling of all pages
+page_list_dic = WS_pt.createdPageListDic(u'Ambições (Ana de Castro Osório, 1903).pdf')
+
+
+# Create the Wikisource object
 WS = WikiSourceApi('en')
 
-# Get page list
-pageList = WS.createdPageList('Landon in Literary Gazette 1833.pdf')
-for page in pageList:
+page_list = WS.createdPageList('Landon in Literary Gazette 1833.pdf')
+for page in page_list:
     print(page)
-    
+
 
 # Get the number of pages of Index Book
 print(WS.numpage('Landon in Literary Gazette 1833.pdf'))

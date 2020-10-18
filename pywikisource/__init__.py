@@ -51,18 +51,37 @@ class WikiSourceApi():
         page_list = []
 
         # Get page source
-        page_soure = requests.get(('https://{}.wikisource.org/wiki/Index:{}').format(self.lang, index))
+        page_source = requests.get((u'https://{}.wikisource.org/wiki/Index:{}').format(self.lang, index))
 
-        soup = BeautifulSoup(page_soure.text, 'html.parser')
+        soup = BeautifulSoup(page_source.text, 'html.parser')
 
         for span in soup.find_all('span', {"class": 'prp-index-pagelist'}):
             a = span.find_all('a', {'href': True})
             for ach in a:
                 # Rid non-exist pages
-                if (ach['class'] == ["new"]) == True:
+                if (ach['class'] == ["new"]):
                     continue
                 else:
                     page_list.append(urllib.parse.unquote(ach['href'])[6:])
+
+        return page_list
+
+    def createdPageListDic(self, index):
+        """
+        Returns an dictionary with the page numbering and labelling of all pages.
+        """
+        page_list = {}
+
+        # Get page source
+        page_source = requests.get(('https://{}.wikisource.org/wiki/Index:{}').format(self.lang, index))
+
+        soup = BeautifulSoup(page_source.text, 'html.parser')
+
+        span = soup.find('span', {"class": 'prp-index-pagelist'})
+        for a in span.find_all('a', {'href': True}):
+            key = urllib.parse.unquote(a['href']).replace("&action=edit&redlink=1", "").rsplit("/", 1)[-1]
+            # page_list[key] = a.get_text().strip()
+            page_list[key] = a.findAll(text=True)[0]
 
         return page_list
 
@@ -88,7 +107,7 @@ class WikiSourceApi():
         data = requests.get(url=self.url_endpoint, params=param).json()
         revs = list(data["query"]["pages"].values())[0]["revisions"]
 
-        old_quality = False;
+        old_quality = False
         page_size = None
 
         for i in revs:
@@ -102,7 +121,7 @@ class WikiSourceApi():
             timestamp = i['timestamp']
             rev_id = i['revid']
 
-            if (quality == 3) and ( (not old_quality) or old_quality < 3):
+            if (quality == 3) and ((not old_quality) or old_quality < 3):
                 # Page has proofread
                 status['proofread'] = {"user": user, "timestamp": timestamp, "revid": rev_id}
 
@@ -123,7 +142,7 @@ class WikiSourceApi():
                 status['proofread'] = None
                 status['validate'] = None
 
-            old_quality = quality;
+            old_quality = quality
 
         status["code"] = quality
         status["size"] = page_size
